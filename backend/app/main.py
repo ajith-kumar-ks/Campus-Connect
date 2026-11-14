@@ -3,6 +3,8 @@ from fastapi import FastAPI
 
 from backend.app.db.session import engine, Base
 from backend.app.models.user import User
+from backend.app.models.club import Club
+from backend.app.models.club_membership import ClubMembership
 from backend.app.routers.auth import router as auth_router
 from backend.app.routers.users import router as users_router
 
