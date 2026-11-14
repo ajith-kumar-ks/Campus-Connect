@@ -7,6 +7,7 @@ from backend.app.models.club import Club
 from backend.app.models.club_membership import ClubMembership
 from backend.app.routers.auth import router as auth_router
 from backend.app.routers.users import router as users_router
+from backend.app.routers.clubs import router as clubs_router
 
 
 app = FastAPI(
@@ -28,6 +29,10 @@ app.include_router(
     prefix="/api/v1"
 )
 
+app.include_router(
+    clubs_router,
+    prefix='/api/v1'
+)
 
 @app.get("/api/v1/health", tags=["Health"])
 def health_check():
