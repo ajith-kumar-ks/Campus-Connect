@@ -11,13 +11,18 @@ from backend.app.models.user import User
 
 from backend.app.schemas.club import (
     ClubCreate,
-    ClubResponse
+    ClubResponse,
+    ClubUpdate,
+    ClubPartialUpdate
 )
 
 from backend.app.services.club_service import (
     create_club,
     get_all_clubs,
-    get_club_by_id
+    get_club_by_id,
+    update_club,
+    partial_update_club,
+    deactivate_club
 )
 
 
@@ -56,3 +61,29 @@ def retrieve_club(
 ):
 
     return get_club_by_id(club_id, db)
+
+
+@router.put('/{club_id}', response_model=ClubResponse)
+def update_existing_club(club_id:int, club_data:ClubUpdate, current_user:User=Depends(get_current_admin), db:Session=Depends(get_db)):
+    return update_club(club_id, club_data, db)
+
+
+@router.patch('/{club_id}', response_model=ClubResponse)
+def partially_update_existing_club(club_id:int, club_data:ClubPartialUpdate, current_user=Depends(get_current_admin), db:Session=Depends(get_db)):
+    return partial_update_club(club_id, club_data, db)
+
+
+# Deactivate a club
+@router.delete(
+    "/{club_id}"
+)
+def delete_existing_club(
+    club_id: int,
+    current_admin: User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+
+    return deactivate_club(
+        club_id,
+        db
+    )

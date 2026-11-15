@@ -3,7 +3,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
-from backend.app.schemas.club import ClubCreate
+from backend.app.schemas.club import ClubCreate, ClubPartialUpdate, ClubUpdate
 from backend.app.models.club import Club
 
 
@@ -69,3 +69,105 @@ def get_club_by_id(
         )
 
     return club
+
+
+
+def update_club(club_id:int, club_data:ClubUpdate, db:Session):
+    club = get_club_by_id(club_id, db)
+
+    # Check whether another club already uses this name
+    existing_club = db.scalar(
+        select(Club).where(
+            Club.name == club_data.name,
+            Club.id != club_id
+        )
+    )
+
+    if existing_club:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Another club already uses this name"
+        )
+
+    club.name = club_data.name
+    club.description = club_data.description
+    club.category = club_data.category
+
+    try:
+        db.commit()
+        db.refresh(club)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail='Another club already uses this name'
+        )
+
+    return club
+
+
+def partial_update_club(
+    club_id: int,
+    club_data: ClubPartialUpdate,
+    db: Session
+):
+
+    club = get_club_by_id(club_id, db)
+
+    update_data = club_data.model_dump(exclude_unset=True)
+
+    if not update_data:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Provide at least one field to update"
+        )
+
+    # Reject explicitly supplied null values
+    if any(value is None for value in update_data.values()):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Club fields cannot be null"
+        )
+
+    if "name" in update_data:
+        existing_club = db.scalar(
+            select(Club).where(
+                Club.name == update_data["name"],
+                Club.id != club_id
+            )
+        )
+
+        if existing_club:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Another club already uses this name"
+            )
+
+    for field, value in update_data.items():
+        setattr(club, field, value)
+
+    try:
+        db.commit()
+        db.refresh(club)
+
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Could not update club due to a database conflict"
+        )
+
+    return club
+
+def deactivate_club(
+    club_id: int,
+    db: Session
+):
+
+    club = get_club_by_id(club_id, db)
+
+    club.is_active = False
+
+    db.commit()
+
+    return {"message": "Club deactivated successfully"}
