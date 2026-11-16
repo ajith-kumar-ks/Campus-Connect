@@ -1,8 +1,13 @@
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from backend.app.models.club_membership import ClubMembership
+    
 from sqlalchemy import String, Boolean
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.db.session import Base
+
 
 
 class User(Base):
@@ -42,3 +47,5 @@ class User(Base):
         default=True,
         nullable=False
     )
+
+    club_memberships: Mapped[list["ClubMembership"]] = relationship(back_populates='user')

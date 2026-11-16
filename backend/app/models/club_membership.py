@@ -1,3 +1,8 @@
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from backend.app.models.club import Club
+    from backend.app.models.user import User
 
 from datetime import datetime, timezone
 
@@ -8,9 +13,11 @@ from sqlalchemy import (
     UniqueConstraint
 )
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.db.session import Base
+
+
 
 
 class ClubMembership(Base):
@@ -57,3 +64,23 @@ class ClubMembership(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False
     )
+
+    user: Mapped["User"] = relationship(
+    back_populates="club_memberships"
+)
+
+    club: Mapped["Club"] = relationship(
+    back_populates="memberships"
+)
+
+
+
+    
+
+
+# TYPE_CHECKING
+# It is True when static type checkers analyze your code.
+# It is False during normal Python execution.
+# Therefore, the import won't execute at runtime.
+# This avoids circular imports while helping VS Code understand the types.
+#You don't need to import another model class just to define a relationship.
