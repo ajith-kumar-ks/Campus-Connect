@@ -67,3 +67,73 @@ def get_my_memberships(
     )
 
     return db.scalars(statement).all()
+
+
+def get_pending_membership_requests(club_id:int, db:Session):
+    statement = select(ClubMembership).where(
+        ClubMembership.club_id == club_id,
+        ClubMembership.status == 'pending'
+    )
+
+    return db.scalars(statement).all()
+
+
+def approve_membership_request(club_id:int, membership_id:int, db:Session):
+    membership = db.scalar(select(ClubMembership).where(ClubMembership.id == membership_id, ClubMembership.club_id==club_id))
+
+    if membership is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Membership request not found"
+        )
+
+    if membership.status != 'pending':
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This membership request has already been processed"
+        )
+
+    membership.status = 'active'
+
+    db.commit()
+    db.refresh(membership)
+
+    return membership
+
+
+def reject_membership_request(
+    club_id: int,
+    membership_id: int,
+    db: Session
+):
+    membership = db.scalar(
+        select(ClubMembership).where(
+            ClubMembership.id == membership_id,
+            ClubMembership.club_id == club_id
+        )
+    )
+
+    if membership is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Membership request not found"
+        )
+
+    if membership.status != "pending":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This membership request has already been processed"
+        )
+
+    membership.status = "rejected"
+
+    db.commit()
+    db.refresh(membership)
+
+    return membership
+
+
+def get_active_club_members(club_id:int, db:Session):
+    statement = select(ClubMembership).where(ClubMembership.club_id == club_id, ClubMembership.status=='active')
+
+    return db.scalars(statement).all()
