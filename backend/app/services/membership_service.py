@@ -171,3 +171,73 @@ def remove_club_member(club_id:int, membership_id:int, db:Session):
     db.commit()
 
     return membership
+
+
+def promote_to_organizer(club_id:int, membership_id:int, db:Session):
+    membership = db.scalar(select(ClubMembership).where(ClubMembership.id == membership_id, ClubMembership.club_id == club_id))
+
+    if membership is None:
+        raise HTTPException(
+            status_code=404,
+            detail='Membership Not Found!!'
+        )
+
+    if membership.status != 'active':
+        raise HTTPException(
+            status_code=409,
+            detail="Only active members can become organizers"
+        )
+
+    if membership.role == 'organizer':
+        raise HTTPException(status_code=409, detail='This user is already an organizer')
+
+    membership.role = 'organizer'
+
+    db.commit()
+    db.refresh(membership)
+
+    return membership
+
+
+def demote_organizer(club_id:int, membership_id:int, db:Session):
+    membership = db.scalar(select(ClubMembership).where(ClubMembership.id == membership_id, ClubMembership.club_id == club_id))
+
+    if membership is None:
+        raise HTTPException(
+            status_code=404,
+            detail='Membership Not found'
+        )
+
+    if membership.role != "organizer":
+        raise HTTPException(
+            status_code=409,
+            detail="This user is not an organizer"
+        )
+
+    if membership.status != "active":
+        raise HTTPException(
+            status_code=409,
+            detail="Only active organizers can be demoted"
+        )
+
+     # Count all active organizers before demotion.
+    organizers = db.scalars(
+        select(ClubMembership).where(
+            ClubMembership.club_id == club_id,
+            ClubMembership.role == "organizer",
+            ClubMembership.status == "active"
+        )
+    ).all()
+
+    if len(organizers) <= 1:
+        raise HTTPException(
+            status_code=409,
+            detail="A club must have at least one active organizer"
+        )
+
+    membership.role = "member"
+
+    db.commit()
+    db.refresh(membership)
+
+    return membership
