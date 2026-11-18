@@ -29,7 +29,7 @@ from backend.app.services.club_service import (
 
 from backend.app.schemas.club_membership import MembershipRequest, MembershipResponse
 
-from backend.app.services.membership_service import request_to_join_club, approve_membership_request, reject_membership_request, get_pending_membership_requests, get_active_club_members
+from backend.app.services.membership_service import request_to_join_club, approve_membership_request, reject_membership_request, get_pending_membership_requests, get_active_club_members, remove_club_member
 
 
 
@@ -131,4 +131,6 @@ def list_club_members(
     return get_active_club_members(club_id, db)
 
 
-
+@router.delete('/{club_id}/members/{membership_id}', response_model=MembershipResponse)
+def remove_member(club_id:int, membership_id:int, current_organizer:User=Depends(get_current_club_organizer), db:Session=Depends(get_db)):
+    return remove_club_member(club_id, membership_id, db)

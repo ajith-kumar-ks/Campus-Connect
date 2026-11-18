@@ -137,3 +137,37 @@ def get_active_club_members(club_id:int, db:Session):
     statement = select(ClubMembership).where(ClubMembership.club_id == club_id, ClubMembership.status=='active')
 
     return db.scalars(statement).all()
+
+
+
+def remove_club_member(club_id:int, membership_id:int, db:Session):
+    membership = db.scalar(
+        select(ClubMembership).where(
+            ClubMembership.id == membership_id,
+            ClubMembership.club_id == club_id
+        )
+    )
+
+    if membership is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Membership not found"
+        )
+
+    if membership.status != "active":
+        raise HTTPException(
+            status_code=409,
+            detail="Only active members can be removed"
+        )
+
+    if membership.role == "organizer":
+        raise HTTPException(
+            status_code=403,
+            detail="Organizers cannot be removed through this endpoint"
+        )
+
+    membership.status = "rejected"
+
+    db.commit()
+
+    return membership
