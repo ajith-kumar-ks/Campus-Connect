@@ -77,16 +77,23 @@ def get_current_admin(
     return current_user
 
 
-def get_current_club_organizer(club_id:int, current_user:User=Depends(get_current_user), db:Session=Depends(get_db)):
+
+def get_current_club_organizer(
+    club_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     statement = select(ClubMembership).join(Club).where(
         ClubMembership.user_id == current_user.id,
         ClubMembership.club_id == club_id,
-        ClubMembership.role == 'organizer',
-        ClubMembership.status == 'active',
+        ClubMembership.role == "organizer",
+        ClubMembership.status == "active",
         Club.is_active == True
     )
 
-    if statement is None:
+    membership = db.scalar(statement)
+
+    if membership is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You are not an organizer of this club"

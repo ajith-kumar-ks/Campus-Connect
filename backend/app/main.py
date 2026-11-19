@@ -9,6 +9,8 @@ from backend.app.models.event import Event
 from backend.app.routers.auth import router as auth_router
 from backend.app.routers.users import router as users_router
 from backend.app.routers.clubs import router as clubs_router
+from backend.app.routers.events import router as event_router
+
 
 
 app = FastAPI(
@@ -32,6 +34,11 @@ app.include_router(
 
 app.include_router(
     clubs_router,
+    prefix='/api/v1'
+)
+
+app.include_router(
+    event_router,
     prefix='/api/v1'
 )
 

@@ -51,4 +51,4 @@ class User(Base):
 
     club_memberships: Mapped[list["ClubMembership"]] = relationship(back_populates='user')
 
-    events: Mapped[list['Event']] = relationship(back_populates='creator')
+    created_events: Mapped[list['Event']] = relationship(back_populates='creator')
