@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from backend.app.models.club_membership import ClubMembership
+    from backend.app.models.event import Event
     
 from datetime import datetime, timezone
 
@@ -24,3 +25,4 @@ class Club(Base):
     memberships: Mapped[list["ClubMembership"]] = relationship(
         back_populates="club"
     )
+    events: Mapped[list['Event']] = relationship(back_populates='club')

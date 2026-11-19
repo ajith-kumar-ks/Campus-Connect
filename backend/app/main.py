@@ -5,6 +5,7 @@ from backend.app.db.session import engine, Base
 from backend.app.models.user import User
 from backend.app.models.club import Club
 from backend.app.models.club_membership import ClubMembership
+from backend.app.models.event import Event
 from backend.app.routers.auth import router as auth_router
 from backend.app.routers.users import router as users_router
 from backend.app.routers.clubs import router as clubs_router
