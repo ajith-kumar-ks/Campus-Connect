@@ -9,8 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 if TYPE_CHECKING:
     from backend.app.models.club import Club
     from backend.app.models.user import User
-
-
+    from backend.app.models.registration import Registration
 
 
 class Event(Base):
@@ -119,4 +118,10 @@ class Event(Base):
     creator: Mapped["User"] = relationship(
         back_populates="created_events"
     )
+    registrations: Mapped[list["Registration"]] = relationship(
+    back_populates="event"
+)
     
+
+
+

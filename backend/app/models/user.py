@@ -2,7 +2,8 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from backend.app.models.club_membership import ClubMembership
-    from app.models.event import Event
+    from backend.app.models.event import Event
+    from backend.app.models.registration import Registration
 
 from sqlalchemy import String, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -52,3 +53,5 @@ class User(Base):
     club_memberships: Mapped[list["ClubMembership"]] = relationship(back_populates='user')
 
     created_events: Mapped[list['Event']] = relationship(back_populates='creator')
+
+    registrations: Mapped[list['Registration']] = relationship(back_populates='user')
