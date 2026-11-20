@@ -113,3 +113,12 @@ class EventStatusUpdate(BaseModel):
         "cancelled",
         "completed"
     ]
+
+
+
+class EventListResponse(BaseModel):
+    items : list[EventResponse]
+    total : int
+    skip : int
+    limit : int
+    

@@ -1,6 +1,7 @@
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 from backend.app.models.event import Event
 from backend.app.models.club import Club
@@ -190,3 +191,73 @@ def update_event_status(
     db.refresh(event)
 
     return event
+
+
+
+
+
+def list_events(
+    db: Session,
+    search: str | None = None,
+    category: str | None = None,
+    club_id: int | None = None,
+    start_date: datetime | None = None,
+    end_date: datetime | None = None,
+    skip: int = 0,
+    limit: int = 10
+):
+
+    # Start with published events only
+    query = select(Event).where(
+        Event.status == "published"
+    )
+
+    # Search by title---ilike() performs case-insensitive pattern matching on supported databases.
+    if search:
+        query = query.where(
+            Event.title.ilike(f"%{search}%")
+        )
+
+    # Filter by category
+    if category:
+        query = query.where(
+            Event.category == category
+        )
+
+    # Filter by club
+    if club_id:
+        query = query.where(
+            Event.club_id == club_id
+        )
+
+    # Filter by starting date
+    if start_date:
+        query = query.where(
+            Event.start_time >= start_date
+        )
+
+    if end_date:
+        query = query.where(
+            Event.start_time <= end_date
+        )
+
+    # Count matching events before pagination
+    total = db.scalar(
+        select(func.count()).select_from(
+            query.subquery()
+        )
+    )
+
+    # Apply ordering and pagination
+    query = query.order_by(
+        Event.start_time.asc()
+    ).offset(skip).limit(limit)
+
+    events = db.scalars(query).all()
+
+    return {
+        "items": events,
+        "total": total or 0,
+        "skip": skip,
+        "limit": limit
+    }

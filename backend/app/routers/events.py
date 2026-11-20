@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Query, HTTPException
+from datetime import datetime
 from sqlalchemy.orm import Session
 
 from backend.app.db.dependencies import get_current_club_organizer, get_db
@@ -7,10 +8,11 @@ from backend.app.schemas.event import (
     EventCreate,
     EventUpdate,
     EventResponse,
-    EventStatusUpdate
+    EventStatusUpdate,
+    EventListResponse
 )
 
-from backend.app.services.event_service import (create_event, get_event, update_event, delete_event, update_event_status)
+from backend.app.services.event_service import (create_event, get_event, update_event, delete_event, update_event_status, list_events)
 
 from backend.app.models.user import User
 
@@ -95,4 +97,37 @@ def change_event_status(
         event_id,
         status_data.status,
         db
+    )
+
+
+
+@router.get('/events', response_model=EventListResponse)
+def browse_events(
+    search: str | None = None,
+    category: str | None = None,
+    club_id: int | None = None,
+    start_date: datetime | None = None,
+    end_date: datetime | None = None,
+
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=10, ge=1, le=100),
+
+    db: Session = Depends(get_db)
+):
+    if start_date and end_date and start_date > end_date:
+
+        raise HTTPException(
+            status_code=422,
+            detail="Start date cannot be after end date"
+        )
+
+    return list_events(
+        db=db,
+        search=search,
+        category=category,
+        club_id=club_id,
+        start_date=start_date,
+        end_date=end_date,
+        skip=skip,
+        limit=limit
     )
