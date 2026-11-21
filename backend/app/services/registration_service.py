@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
 from sqlalchemy import select, func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from backend.app.models.event import Event
 from backend.app.models.registration import Registration
@@ -117,3 +117,98 @@ def cancel_registration(
     db.refresh(registration)
 
     return registration
+
+
+
+
+def get_event_participants(
+    club_id: int,
+    event_id: int,
+    db: Session,
+    skip: int = 0,
+    limit: int = 20
+):
+    # Step 1: Verify that the event belongs to this club
+    event = db.scalar(
+        select(Event).where(
+            Event.id == event_id,
+            Event.club_id == club_id
+        )
+    )
+
+    if event is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Event not found in this club"
+        )
+
+    # Step 2: Count active registrations
+    total = db.scalar(
+        select(func.count())
+        .select_from(Registration)
+        .where(
+            Registration.event_id == event_id,
+            Registration.status == "registered"
+        )
+    )
+
+    # Step 3: Fetch the requested page
+    statement = (
+        select(Registration)
+        .where(
+            Registration.event_id == event_id,
+            Registration.status == "registered"
+        )
+        .order_by(Registration.registered_at.desc())
+        .offset(skip)
+        .limit(limit)
+    )
+
+    participants = db.scalars(statement).all()
+
+    return {
+        "items": participants,
+        "total": total,
+        "skip": skip,
+        "limit": limit
+    }
+
+
+
+
+def get_my_registrations(current_user:User, db:Session, registration_status:str=None, skip:int=0, limit:int=20):
+
+    statement = select(Registration).where(Registration.user_id==current_user.id)
+
+    if registration_status is not None:
+        statement = statement.where(Registration.status==registration_status)
+
+    count_statement = (
+        select(func.count())
+        .select_from(Registration)
+        .where(Registration.user_id == current_user.id)
+    )
+
+    if registration_status is not None:
+        count_statement = count_statement.where(
+            Registration.status == registration_status
+        )
+
+    total = db.scalar(count_statement)
+        #Load associated Event objects
+    statement = (
+        statement
+        .options(selectinload(Registration.event))
+        .order_by(Registration.registered_at.desc())
+        .offset(skip)
+        .limit(limit)
+    )
+
+    registrations = db.scalars(statement).all()
+
+    return {
+        "items": registrations,
+        "total": total,
+        "skip": skip,
+        "limit": limit
+    }

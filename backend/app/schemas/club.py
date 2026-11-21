@@ -66,3 +66,31 @@ class ClubPartialUpdate(BaseModel):
         min_length=3,
         max_length=50
     )
+
+
+class MyClubSummary(BaseModel):
+    id:int
+    name:str
+    description:str|None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+
+class MyClubResponse(BaseModel):
+    id:int
+    role:str
+    status:str
+    joined_at:datetime|None = None
+    club: MyClubSummary
+
+    model_config =ConfigDict(from_attributes=True)
+
+
+class MyClubListResponse(BaseModel):
+    items: list[MyClubResponse]
+    total: int
+    skip: int
+    limit: int
+
+    

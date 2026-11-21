@@ -1,10 +1,13 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
 
 from backend.app.schemas.club import ClubCreate, ClubPartialUpdate, ClubUpdate
 from backend.app.models.club import Club
+from backend.app.models.club_membership import ClubMembership
+from backend.app.models.user import User
+
 
 
 def create_club(club_data:ClubCreate, db:Session):
@@ -171,3 +174,49 @@ def deactivate_club(
     db.commit()
 
     return {"message": "Club deactivated successfully"}
+
+
+
+def get_my_clubs(current_user:User, db:Session, membership_status:str|None=None, skip:int=0, limit:int=20):
+    # Step 1: Base query
+    statement = select(ClubMembership).where(
+        ClubMembership.user_id == current_user.id
+    )
+
+    # Step 2: Apply membership status filter
+    if membership_status is not None:
+        statement = statement.where(
+            ClubMembership.status == membership_status
+        )
+
+    # Step 3: Count matching memberships
+    count_statement = (
+        select(func.count())
+        .select_from(ClubMembership)
+        .where(ClubMembership.user_id == current_user.id)
+    )
+
+    if membership_status is not None:
+        count_statement = count_statement.where(
+            ClubMembership.status == membership_status
+        )
+
+    total = db.scalar(count_statement)
+
+    # Step 4: Load associated clubs
+    statement = (
+        statement
+        .options(selectinload(ClubMembership.club))
+        .order_by(ClubMembership.joined_at.desc())
+        .offset(skip)
+        .limit(limit)
+    )
+
+    memberships = db.scalars(statement).all()
+
+    return {
+        "items": memberships,
+        "total": total,
+        "skip": skip,
+        "limit": limit
+    }

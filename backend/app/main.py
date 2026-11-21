@@ -14,6 +14,9 @@ from backend.app.routers.users import router as users_router
 from backend.app.routers.clubs import router as clubs_router
 from backend.app.routers.events import router as event_router
 from backend.app.routers.registration import router as registration_router
+from backend.app.routers.participant import router as participant_router
+from backend.app.routers.my_registrations import router as my_registrations_router
+from backend.app.routers.my_clubs import router as my_clubs_router
 
 
 
@@ -52,6 +55,21 @@ app.include_router(
 )
 
 
+app.include_router(
+    participant_router,
+    prefix='/api/v1'
+)
+
+
+app.include_router(
+    my_registrations_router,
+    prefix='/api/v1'
+)
+
+app.include_router(
+    my_clubs_router,
+    prefix='/api/v1'
+)
 
 @app.get("/api/v1/health", tags=["Health"])
 def health_check():
