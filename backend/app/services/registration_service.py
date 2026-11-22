@@ -212,3 +212,50 @@ def get_my_registrations(current_user:User, db:Session, registration_status:str=
         "skip": skip,
         "limit": limit
     }
+
+
+
+
+def get_event_participants_for_export(
+    club_id: int,
+    event_id: int,
+    db: Session
+):
+    # 1. Verify that the event belongs to this club
+    event = db.scalar(
+        select(Event).where(
+            Event.id == event_id,
+            Event.club_id == club_id
+        )
+    )
+
+    if not event:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Event not found in this club"
+        )
+
+    # 2. Fetch all active registrations with student details
+    statement = (
+        select(
+            Registration.id.label("registration_id"),
+            User.id.label("student_id"),
+            User.full_name,
+            User.email,
+            Registration.status,
+            Registration.registered_at
+        )
+        .join(
+            User,
+            User.id == Registration.user_id
+        )
+        .where(
+            Registration.event_id == event_id,
+            Registration.status == "registered"
+        )
+        .order_by(Registration.registered_at.asc())
+    )
+
+    participants = db.execute(statement).all()
+
+    return event, participants
