@@ -17,7 +17,8 @@ from backend.app.routers.registration import router as registration_router
 from backend.app.routers.participant import router as participant_router
 from backend.app.routers.my_registrations import router as my_registrations_router
 from backend.app.routers.my_clubs import router as my_clubs_router
-
+from backend.app.routers.student_dashboard import router as student_dashboard_router
+from backend.app.routers.organizer_dashboard import router as organizer_dashboard_router
 
 
 app = FastAPI(
@@ -68,6 +69,16 @@ app.include_router(
 
 app.include_router(
     my_clubs_router,
+    prefix='/api/v1'
+)
+
+app.include_router(
+    student_dashboard_router,
+    prefix='/api/v1'
+)
+
+app.include_router(
+    organizer_dashboard_router,
     prefix='/api/v1'
 )
 
