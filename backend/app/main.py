@@ -19,6 +19,8 @@ from backend.app.routers.my_registrations import router as my_registrations_rout
 from backend.app.routers.my_clubs import router as my_clubs_router
 from backend.app.routers.student_dashboard import router as student_dashboard_router
 from backend.app.routers.organizer_dashboard import router as organizer_dashboard_router
+from fastapi.middleware.cors import CORSMiddleware
+
 
 
 app = FastAPI(
@@ -26,6 +28,31 @@ app = FastAPI(
     description="College Event and Club Management Platform",
     version="1.0.0"
 )
+
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
+    ],
+    allow_credentials=False,
+    allow_methods=[
+        "GET",
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE",
+        "OPTIONS"
+    ],
+    allow_headers=[
+        "Authorization",
+        "Content-Type"
+    ]
+)
+
+
 
 # Temporary table creation during initial development
 Base.metadata.create_all(bind=engine)
