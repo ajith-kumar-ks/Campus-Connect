@@ -30,6 +30,9 @@ from backend.app.core.exceptions import (
     general_exception_handler
 )
 
+from backend.app.core.middleware import request_tracking_middleware
+
+
 
 app = FastAPI(
     title="CampusConnect API",
@@ -59,6 +62,8 @@ app.add_middleware(
         "Content-Type"
     ]
 )
+
+app.middleware("http")(request_tracking_middleware)
 
 app.add_exception_handler(
     StarletteHTTPException,
@@ -138,3 +143,6 @@ def health_check():
         "status": "healthy",
         "message": "CampusConnect API is running!"
     }
+
+
+
