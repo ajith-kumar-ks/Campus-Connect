@@ -1,10 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
-DATABASE_URL = 'sqlite:///./campusconnect.db'
+from backend.app.core.config import settings
+
 
 engine = create_engine(
-    DATABASE_URL,
+    settings.DATABASE_URL,
     connect_args={"check_same_thread" : False}
 )
 

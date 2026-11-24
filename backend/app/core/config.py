@@ -1,12 +1,15 @@
-
+from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Locate the .env file in the project root
+BASE_DIR = Path(__file__).resolve().parents[3]
 
 
 class Settings(BaseSettings):
 
     APP_NAME: str = "CampusConnect"
 
-    DATABASE_URL: str = "sqlite:///./campusconnect.db"
+    DATABASE_URL: str 
 
     SECRET_KEY: str
 

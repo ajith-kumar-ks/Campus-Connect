@@ -21,6 +21,14 @@ from backend.app.routers.student_dashboard import router as student_dashboard_ro
 from backend.app.routers.organizer_dashboard import router as organizer_dashboard_router
 from fastapi.middleware.cors import CORSMiddleware
 
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from backend.app.core.exceptions import (
+    http_exception_handler,
+    validation_exception_handler,
+    general_exception_handler
+)
 
 
 app = FastAPI(
@@ -52,6 +60,20 @@ app.add_middleware(
     ]
 )
 
+app.add_exception_handler(
+    StarletteHTTPException,
+    http_exception_handler
+)
+
+app.add_exception_handler(
+    RequestValidationError,
+    validation_exception_handler
+)
+
+app.add_exception_handler(
+    Exception,
+    general_exception_handler
+)
 
 
 # Temporary table creation during initial development
