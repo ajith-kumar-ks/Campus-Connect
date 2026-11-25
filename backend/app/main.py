@@ -31,8 +31,10 @@ from backend.app.core.exceptions import (
 )
 
 from backend.app.core.middleware import request_tracking_middleware
+from backend.app.core.logging_config import setup_logging
 
 
+setup_logging()
 
 app = FastAPI(
     title="CampusConnect API",
